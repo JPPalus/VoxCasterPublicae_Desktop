@@ -1,9 +1,9 @@
-from Base64_aassets import *
+from Base64_Assets import *
+from AudioPlayer import AudioPlayer
 import os
 import sqlite3 as sql
-from cv2 import imread
-from PyQt6.QtCore import Qt, QByteArray
-from PyQt6.QtMultimedia import QMediaPlayer
+from PyQt6.QtCore import Qt, QByteArray, QUrl, pyqtSignal
+from PyQt6.QtMultimedia import QMediaPlayer, QAudioOutput
 from PyQt6.QtGui import (
     QMovie,
     QIcon,
@@ -27,8 +27,8 @@ from PyQt6.QtWidgets import (
     QWidget,
 )
 
-SERVERSIDE_MUSIC_FOLER_PATH = r'C:\\Users\\malekith\\Desktop\\VoxCaster\\Films\\'
-DB_FILE_PATH = r'C:\\Users\\malekith\\Desktop\\VoxCaster\\VoxCaster.db'
+SERVERSIDE_MUSIC_FOLER_PATH = r'C:\\Users\\malekith\\Desktop\\VoxCasterPublicae_Desktop\\Half Life - Black Mesa\\'
+DB_FILE_PATH = r'C:\\Users\\malekith\\Desktop\\VoxCasterPublicae_Desktop\\VoxCaster.db'
 
 
 # Create a sqlite file from a path
@@ -40,7 +40,8 @@ def create_db_from_path(db_file, path):
         curser.execute('DROP TABLE IF EXISTS filepaths')
         curser.execute('CREATE TABLE filepaths (filepath TEXT)')
         for root, dirnames, filenames in os.walk(path):
-            curser.executemany('INSERT INTO filepaths (filepath) VALUES (?)', [(os.path.join(root, filename), ) for filename in filenames])
+            curser.executemany('INSERT INTO filepaths (filepath) VALUES (?)', [
+                               (os.path.join(root, filename), ) for filename in filenames])
             connection.commit()
     except sql.Error as error_code:
         print(error_code)
@@ -97,20 +98,19 @@ class MainWindow(QMainWindow):
         self.window_layout.addWidget(self.right_pannel, 50)
 
         # Audio player #
-        self.audio_player = QWidget()
-        self.audio_player_layout = QHBoxLayout()
-        self.audio_player.setLayout(self.audio_player_layout)
-        # ---------------- #
-        self.audio_progress_bar = QProgressBar()
+        self.audio_player_container = QWidget()
         self.volume_slider = QSlider()
+        self.audio_player = AudioPlayer()
+        self.audio_player_layout = QHBoxLayout()
         # ---------------- #
-        self.audio_progress_bar.setValue(100)
+        self.audio_player_container.setLayout(self.audio_player_layout)
+        # ---------------- #
         self.volume_slider.setOrientation(Qt.Orientation.Horizontal)
         # ---------------- #
-        self.audio_player_layout.addWidget(self.audio_progress_bar, 75)
+        self.audio_player_layout.addWidget(self.audio_player, 75)
         self.audio_player_layout.addWidget(self.volume_slider, 25)
         # ---------------- #
-        self.left_pannel_layout.addWidget(self.audio_player)
+        self.left_pannel_layout.addWidget(self.audio_player_container)
 
         # Audio Controls #
         self.audio_controls = QGroupBox('Controls')
@@ -159,6 +159,7 @@ class MainWindow(QMainWindow):
         # ---------------- #
         self.left_pannel_layout.addWidget(self.file_pannel)
         self.populate_file_tree()
+        self.file_pannel_tree.itemClicked.connect(self.on_Item_Clicked)
 
         # File infos pannel
         self.file_infos = QGroupBox('File infos')
@@ -208,29 +209,40 @@ class MainWindow(QMainWindow):
         self.right_pannel_layout.addWidget(self.dsp_tabs)
 
     def populate_file_tree(self):
-        # TODO : testfield
         self.file_pannel_tree.setHeaderLabels(['Filepath'])
         root = QTreeWidgetItem(self.file_pannel_tree, ['C:'])
-        parents_dictionary = {root.text(0) : root}
+        root.setExpanded(True)
+        parents_dictionary = {root.text(0): root}
         for filepath in read_db(DB_FILE_PATH, 'filepaths'):
-             # TODO not WIndows
+            # TODO not WIndows
             current_parrent = root.text(0)
             for directory in os.path.dirname(filepath).split('\\'):
                 if (directory not in parents_dictionary):
                     if (directory != ""):
-                        widget = QTreeWidgetItem(parents_dictionary[current_parrent], [directory]) 
+                        widget = QTreeWidgetItem(
+                            parents_dictionary[current_parrent], [directory])
+                        widget.setExpanded(True)
                         parents_dictionary[directory] = widget
                         current_parrent = directory
                 else:
                     current_parrent = directory
                     continue
-            widget = QTreeWidgetItem(parents_dictionary[current_parrent], [os.path.basename(filepath)])
+            # widget = QTreeWidgetItem(parents_dictionary[current_parrent], [os.path.basename(filepath)])
+            widget = QTreeWidgetItem(parents_dictionary[current_parrent], [filepath])
             widget.setIcon(0, iconFromBase64(BASE64_ICON))
+
+    def on_Item_Clicked(self, item, column):
+        self.Play(item.text(column))
+
+    def Play(self, audio_path):
+        # TODO online
+        path = audio_path.replace("\\\\", "/")
+        self.audio_player.setSource(path)
 
 
 if __name__ == '__main__':
     # TODO : online
-    # create_db_from_path(DB_FILE_PATH, SERVERSIDE_MUSIC_FOLER_PATH)
+    create_db_from_path(DB_FILE_PATH, SERVERSIDE_MUSIC_FOLER_PATH)
 
     app = QApplication([])
     app.setStyle('Windows')
