@@ -1,5 +1,6 @@
+import os
 from PyQt6.QtCore import Qt, QSize, QUrl
-from PyQt6.QtGui import QFont, QIcon
+from PyQt6.QtGui import QFont
 from PyQt6.QtMultimedia import QMediaPlayer, QAudioOutput
 from PyQt6.QtMultimediaWidgets import QVideoWidget
 from PyQt6.QtWidgets import (
@@ -10,7 +11,6 @@ from PyQt6.QtWidgets import (
     QStatusBar,
     QVBoxLayout,
     QWidget,
-    QFileDialog
 )
 
 
@@ -62,10 +62,9 @@ class AudioPlayer(QWidget):
     
     def setSource(self, filePath):
         if filePath != '':
-            print(filePath)
             self.mediaPlayer.setSource(QUrl.fromLocalFile(filePath))
             self.playButton.setEnabled(True)
-            self.statusBar.showMessage(filePath)
+            self.statusBar.showMessage(''.join(os.path.basename(filePath)).split('.')[0])
             self.play()
 
     def play(self):
