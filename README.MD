@@ -3,7 +3,8 @@
 - Changer le widget QmediaPLayer en un lecteur VLC embarqué.
     - ~~Wrapper d'un lecteur vlc dans un QWidget.~~
     - ~~Bouton play / pause fonctionnel.~~
-    - Volume slidder.
+    - ~~Volume slidder fonctionnel.~~
+    - Rendre le contrôle du volume non-logarithmique.
     - Regarder ce que fait la méthode "parse()".
     - Permettre intéraction avec le positionSlider. 
 - Implémenter les boutons de contrôle.

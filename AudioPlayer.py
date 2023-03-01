@@ -26,11 +26,7 @@ class AudioPlayer(QWidget):
         self.vlc_instance = VLC.Instance()
         self.vlc_mediaPlayer = self.vlc_instance.media_player_new()
 
-        # self.mediaPlayer = QMediaPlayer()
-        # self.audio_output = QAudioOutput()
-
         btnSize = QSize(16, 16)
-        # videoWidget = QVideoWidget()
 
         self.playButton = QPushButton()
         self.playButton.setEnabled(False)
@@ -53,9 +49,7 @@ class AudioPlayer(QWidget):
         self.volumeSlider = QSlider(Qt.Orientation.Horizontal)
         self.volumeSlider.setMaximum(100)
         self.volumeSlider.setValue(self.vlc_mediaPlayer.audio_get_volume())
-        self.volumeSlider.setToolTip("Volume")
-        
-        
+        self.volumeSlider.valueChanged.connect(self.setVolume)
 
         self.statusBar = QStatusBar()
         self.statusBar.setFont(QFont("Noto Sans", 7))
@@ -85,14 +79,9 @@ class AudioPlayer(QWidget):
         if filePath != '':
             self.media = self.vlc_instance.media_new(filePath)
             self.vlc_mediaPlayer.set_media(self.media)
-            
-            
-            
-            # self.mediaPlayer.setSource(QUrl.fromLocalFile(filePath))
             self.playButton.setEnabled(True)
             self.stopButton.setEnabled(True)
             self.statusBar.showMessage(''.join(os.path.basename(filePath)).split('.')[0])
-            # self.play()
 
     def play(self):
         if self.vlc_mediaPlayer.is_playing():
@@ -106,20 +95,14 @@ class AudioPlayer(QWidget):
             self.isPaused = False
             
     def stop(self):
-        """Stop player
-        """
         self.vlc_mediaPlayer.stop()
         self.playButton.setIcon(self.style().standardIcon(QStyle.StandardPixmap.SP_MediaPause)) 
         self.playButton.setIcon(self.style().standardIcon(QStyle.StandardPixmap.SP_MediaPlay))      
 
     def setVolume(self, Volume):
-        """Set the volume
-        """
         self.vlc_mediaPlayer.audio_set_volume(Volume)
 
     def setPosition(self, position):
-        """Set the position
-        """
         # setting the position to where the slider was dragged
         self.vlc_mediaPlayer.set_position(position / 1000.0)
         # the vlc MediaPlayer needs a float value between 0 and 1, Qt
@@ -128,17 +111,12 @@ class AudioPlayer(QWidget):
         # (1000 should be enough)
 
     def updateUI(self):
-        """updates the user interface"""
         # setting the slider to the desired position
         self.positionSlider.setValue(self.vlc_mediaPlayer.get_position() * 1000)
 
         if not self.vlc_mediaPlayer.is_playing():
-            # no need to call this function if nothing is played
             self.timer.stop()
             if not self.isPaused:
-                # after the video finished, the play button stills shows
-                # "Pause", not the desired behavior of a media player
-                # this will fix it
                 self.stop()
 
     def handleError(self):
