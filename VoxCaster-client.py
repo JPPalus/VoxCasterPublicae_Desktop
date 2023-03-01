@@ -11,8 +11,6 @@ from PyQt6.QtGui import (
 from PyQt6.QtWidgets import (
     QApplication,
     QMainWindow,
-    QProgressBar,
-    QSlider,
     QPushButton,
     QCheckBox,
     QDoubleSpinBox,

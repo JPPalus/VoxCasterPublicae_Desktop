@@ -1,7 +1,7 @@
 import os
 import VLC
+from  QJumpSlider import QJumpSlider
 from PyQt6.QtGui import QFont
-from PyQt6.QtMultimedia import QMediaPlayer
 from PyQt6.QtCore import (
     Qt, 
     QSize, 
@@ -11,7 +11,6 @@ from PyQt6.QtWidgets import (
     QPushButton, 
     QHBoxLayout, 
     QStyle,
-    QSlider,
     QLabel,
     QStatusBar,
     QVBoxLayout,
@@ -49,11 +48,11 @@ class AudioPlayer(QWidget):
         self.durationLabel = QLabel('--:--')
         self.durationLabel.setFont(QFont("Noto Sans", 7))
 
-        self.positionSlider = QSlider(Qt.Orientation.Horizontal)
+        self.positionSlider = QJumpSlider(Qt.Orientation.Horizontal)
         self.positionSlider.setMaximum(1000)
         self.positionSlider.sliderMoved.connect(self.setPosition)
         
-        self.volumeSlider = QSlider(Qt.Orientation.Horizontal)
+        self.volumeSlider = QJumpSlider(Qt.Orientation.Horizontal)
         self.volumeSlider.setMaximum(100)
         self.volumeSlider.setValue(self.vlc_mediaPlayer.audio_get_volume())
         self.volumeSlider.valueChanged.connect(self.setVolume)
