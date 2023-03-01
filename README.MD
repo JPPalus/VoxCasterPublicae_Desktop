@@ -2,7 +2,7 @@
 
 - Changer le widget QmediaPLayer en un lecteur VLC embarqué.
     - ~~Wrapper d'un lecteur vlc dans un QWidget.~~
-    - Bouton play / pause fonctionnel.
+    - ~~Bouton play / pause fonctionnel.~~
     - Volume slidder.
     - Regarder ce que fait la méthode "parse()".
     - Permettre intéraction avec le positionSlider. 
