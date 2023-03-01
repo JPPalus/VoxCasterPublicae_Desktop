@@ -4,6 +4,7 @@
     - ~~Wrapper d'un lecteur vlc dans un QWidget.~~
     - ~~Bouton play / pause fonctionnel.~~
     - ~~Volume slidder fonctionnel.~~
+    - Duration et currentTime labels fonctionnels
     - Rendre le contrôle du volume non-logarithmique.
     - Regarder ce que fait la méthode "parse()".
     - Permettre intéraction avec le positionSlider. 

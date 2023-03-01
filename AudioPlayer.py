@@ -12,6 +12,7 @@ from PyQt6.QtWidgets import (
     QHBoxLayout, 
     QStyle,
     QSlider,
+    QLabel,
     QStatusBar,
     QVBoxLayout,
     QWidget,
@@ -41,6 +42,12 @@ class AudioPlayer(QWidget):
         self.stopButton.setIconSize(btnSize)
         self.stopButton.setIcon(self.style().standardIcon(QStyle.StandardPixmap.SP_MediaStop))
         self.stopButton.clicked.connect(self.stop)
+        
+        self.currentPlaybackTimeLabel = QLabel('--:--')
+        self.currentPlaybackTimeLabel.setFont(QFont("Noto Sans", 7))
+        
+        self.durationLabel = QLabel('--:--')
+        self.durationLabel.setFont(QFont("Noto Sans", 7))
 
         self.positionSlider = QSlider(Qt.Orientation.Horizontal)
         self.positionSlider.setMaximum(1000)
@@ -57,7 +64,9 @@ class AudioPlayer(QWidget):
 
         controlLayout = QHBoxLayout()
         controlLayout.setContentsMargins(0, 0, 0, 0)
+        controlLayout.addWidget(self.currentPlaybackTimeLabel)
         controlLayout.addWidget(self.positionSlider)
+        controlLayout.addWidget(self.durationLabel)
         
         buttonLayout = QHBoxLayout()
         buttonLayout.addWidget(self.playButton)
