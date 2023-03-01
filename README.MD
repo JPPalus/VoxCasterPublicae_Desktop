@@ -9,3 +9,9 @@
 - Gestion / création de playlists.
 - Ajouter des Widgets DSP.
 - Style.
+
+### Détails d'implémentation
+
+#### Le cas "libvlc.dll"
+
+Sur Windows, dans la grande tradition des logiciels libres qui consiste à casser quelque chose qui marche très bien au nom de la Sécurité™, VLC a décidé de ne plus rendre accessible à l'OS le PATH de "libvlc.dll". Le dossier d'installation de VLC doit donc être préalablement ajouté manuellement au PATH.
