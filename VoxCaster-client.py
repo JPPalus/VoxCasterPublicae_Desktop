@@ -1,5 +1,5 @@
 from Base64_Assets import *
-from AudioPlayer import AudioPlayer
+from QAudioPlayer import QAudioPlayer
 import os
 import sqlite3 as sql
 from PyQt6.QtCore import Qt, QByteArray, QUrl, pyqtSignal
@@ -106,7 +106,7 @@ class MainWindow(QMainWindow):
 
         # Audio player #
         self.audio_player_container = QGroupBox()
-        self.audio_player = AudioPlayer()
+        self.audio_player = QAudioPlayer()
         self.audio_player_layout = QHBoxLayout()
         # ---------------- #
         self.audio_player_container.setLayout(self.audio_player_layout)

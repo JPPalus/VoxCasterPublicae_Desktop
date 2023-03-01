@@ -1,21 +1,29 @@
-from PyQt6.QtCore import Qt
-from PyQt6.QtWidgets import QSlider, QStyle, QStyleOptionSlider, QFormLayout, QWidget, QApplication
+from PyQt6.QtCore import Qt, pyqtSignal
+from PyQt6.QtWidgets import QSlider, QStyle, QStyleOptionSlider
 
+"""QJumpSlider
 
-class QJumpSlider(QSlider):
+    Emits the position of the slider as a pyqtSignal when the bar is clicked.
+"""
+class QJumpSlider(QSlider):  
+    
+    pressed = pyqtSignal(int)
+    
     def mousePressEvent(self, event):
+        
         super(QJumpSlider, self).mousePressEvent(event)
         if event.button() == Qt.MouseButton.LeftButton:
             val = self.pixelPosToRangeValue(event.pos())
             self.setValue(val)
+            self.pressed.emit(val)
 
     def pixelPosToRangeValue(self, pos):
         opt = QStyleOptionSlider()
         self.initStyleOption(opt)
-        gr = self.style().subControlRect(QStyle.CC_Slider, opt, QStyle.SC_SliderGroove, self)
-        sr = self.style().subControlRect(QStyle.CC_Slider, opt, QStyle.SC_SliderHandle, self)
+        gr = self.style().subControlRect(QStyle.ComplexControl.CC_Slider, opt, QStyle.SubControl.SC_SliderGroove, self)
+        sr = self.style().subControlRect(QStyle.ComplexControl.CC_Slider, opt, QStyle.SubControl.SC_SliderHandle, self)
 
-        if self.orientation() == Qt.Horizontal:
+        if self.orientation() == Qt.Orientation.Horizontal:
             sliderLength = sr.width()
             sliderMin = gr.x()
             sliderMax = gr.right() - sliderLength + 1
@@ -23,22 +31,7 @@ class QJumpSlider(QSlider):
             sliderLength = sr.height()
             sliderMin = gr.y()
             sliderMax = gr.bottom() - sliderLength + 1
+            
         pr = pos - sr.center() + sr.topLeft()
-        p = pr.x() if self.orientation() == Qt.Horizontal else pr.y()
-        return QStyle.sliderValueFromPosition(self.minimum(), self.maximum(), p - sliderMin,
-                                               sliderMax - sliderMin, opt.upsideDown)
-        
-
-
-if __name__ == '__main__':
-    import sys
-
-    app = QApplication(sys.argv)
-    w = QWidget()
-    flay = QFormLayout(w)
-    w1 = QSlider(Qt.Horizontal)
-    w2 = QJumpSlider(Qt.Horizontal)
-    flay.addRow("default: ", w1)
-    flay.addRow("modified: ", w2)
-    w.show()
-    sys.exit(app.exec_())
+        p = pr.x() if self.orientation() == Qt.Orientation.Horizontal else pr.y()
+        return QStyle.sliderValueFromPosition(self.minimum(), self.maximum(), p - sliderMin, sliderMax - sliderMin, opt.upsideDown)
