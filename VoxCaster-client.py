@@ -108,16 +108,12 @@ class MainWindow(QMainWindow):
 
         # Audio player #
         self.audio_player_container = QGroupBox()
-        self.volume_slider = QSlider()
         self.audio_player = AudioPlayer()
         self.audio_player_layout = QHBoxLayout()
         # ---------------- #
         self.audio_player_container.setLayout(self.audio_player_layout)
         # ---------------- #
-        self.volume_slider.setOrientation(Qt.Orientation.Horizontal)
-        # ---------------- #
-        self.audio_player_layout.addWidget(self.audio_player, 75)
-        self.audio_player_layout.addWidget(self.volume_slider, 25)
+        self.audio_player_layout.addWidget(self.audio_player)
         # ---------------- #
         self.left_pannel_layout.addWidget(self.audio_player_container)
 

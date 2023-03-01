@@ -1,6 +1,11 @@
 ### TODO
 
 - Changer le widget QmediaPLayer en un lecteur VLC embarqué.
+    - ~~Wrapper d'un lecteur vlc dans un QWidget.~~
+    - Bouton play / pause fonctionnel.
+    - Volume slidder.
+    - Regarder ce que fait la méthode "parse()".
+    - Permettre intéraction avec le positionSlider. 
 - Implémenter les boutons d contrôle.
 - Implémenter un breadcrumb dans la QGroupBox Curently Playing" et le rendre intéractif.
 - Ajouter, via ffmpeg, à la création de la DB les metadatas.
@@ -8,7 +13,10 @@
 - Migrer la gestion de la DB serverside.
 - Gestion / création de playlists.
 - Ajouter des Widgets DSP.
+- Barre de menu façon Foobar2000.
 - Style.
+
+---
 
 ### Détails d'implémentation
 
