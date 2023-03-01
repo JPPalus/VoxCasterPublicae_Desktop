@@ -6,7 +6,7 @@
     - Volume slidder.
     - Regarder ce que fait la méthode "parse()".
     - Permettre intéraction avec le positionSlider. 
-- Implémenter les boutons d contrôle.
+- Implémenter les boutons de contrôle.
 - Implémenter un breadcrumb dans la QGroupBox Curently Playing" et le rendre intéractif.
 - Ajouter, via ffmpeg, à la création de la DB les metadatas.
 - Recupérer l'art et l'ajouter à la DB.
