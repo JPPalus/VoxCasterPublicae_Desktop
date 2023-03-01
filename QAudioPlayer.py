@@ -55,7 +55,7 @@ class QAudioPlayer(QWidget):
         
         self.volumeSlider = QJumpSlider(Qt.Orientation.Horizontal)
         self.volumeSlider.setMaximum(100)
-        self.volumeSlider.setValue(self.vlc_mediaPlayer.audio_get_volume())
+        self.volumeSlider.setValue(50)
         self.volumeSlider.valueChanged.connect(self.setVolume)
 
         self.statusBar = QStatusBar()
@@ -74,9 +74,9 @@ class QAudioPlayer(QWidget):
         buttonLayout.addWidget(self.volumeSlider, 25)
         
         layout = QVBoxLayout()
+        layout.addWidget(self.statusBar)
         layout.addLayout(controlLayout)
         layout.addLayout(buttonLayout)
-        layout.addWidget(self.statusBar)
 
         self.setLayout(layout)
         
