@@ -2,6 +2,7 @@ import sqlite3 as sql
 import os
 
 SERVERSIDE_MUSIC_FOLER_PATH = r'/var/www/webapp_mal/vox_caster.fr_/Music_folder'
+DB_FILE_PATH = r'/var/www/webapp_mal/vox_caster.fr_/VoxCaster.db'
 
 # Create a sqlite file from a path
 def create_db_from_path(db_file, path):
@@ -19,3 +20,6 @@ def create_db_from_path(db_file, path):
     finally:
         if connection:
             connection.close()
+            
+if __name__ == '__main__':
+    create_db_from_path(DB_FILE_PATH, SERVERSIDE_MUSIC_FOLER_PATH)
