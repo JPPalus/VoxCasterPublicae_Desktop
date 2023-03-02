@@ -28,34 +28,34 @@ from PyQt6.QtWidgets import (
 SERVERSIDE_MUSIC_FOLER_PATH = r'C:\\Users\\malekith\\Desktop\\VoxCasterPublicae_Desktop\\Half Life - Black Mesa\\'
 DB_FILE_PATH = r'C:\\Users\\malekith\\Desktop\\VoxCasterPublicae_Desktop\\VoxCaster.db'
 
-ADRESS = '82.64.66.109'
-PORT = 2270
+# ADRESS = '82.64.66.109'
+# PORT = 2270
 
-# Create a TCP/IP socket
-sock = socket()
+# # Create a TCP/IP socket
+# sock = socket()
 
-# Connect the socket to the port where the server is listening
-sock.connect((ADRESS, PORT))
-print(f'connected to {ADRESS} port {PORT}')
+# # Connect the socket to the port where the server is listening
+# sock.connect((ADRESS, PORT))
+# print(f'connected to {ADRESS} port {PORT}')
 
-try:
-    # Send data
-    message = b'This is the message.  It will be repeated.'
-    print(f'sending {message}')
-    sock.sendall(message)
+# try:
+#     # Send data
+#     message = b'This is the message.  It will be repeated.'
+#     print(f'sending {message}')
+#     sock.sendall(message)
 
-    # Look for the response
-    amount_received = 0
-    amount_expected = len(message)
+#     # Look for the response
+#     amount_received = 0
+#     amount_expected = len(message)
 
-    while amount_received < amount_expected:
-        data = sock.recv(16)
-        amount_received += len(data)
-        print(f'received {data}')
+#     while amount_received < amount_expected:
+#         data = sock.recv(16)
+#         amount_received += len(data)
+#         print(f'received {data}')
 
-finally:
-    print('closing socket')
-    sock.close()
+# finally:
+#     print('closing socket')
+#     sock.close()
 
 
 # Create a sqlite file from a path
@@ -247,14 +247,14 @@ class MainWindow(QMainWindow):
     def populate_file_tree(self):
         self.file_pannel_tree.setHeaderLabels(['Filepath'])
         # TODO
-        root = QTreeWidgetItem(self.file_pannel_tree, ['C:'])
+        root = QTreeWidgetItem(self.file_pannel_tree, ['/var/www/webapp_mal/vox_caster.fr/Music_folder/'])
         root.setExpanded(True)
         parents_dictionary = {root.text(0): root}
         # We use the dictionary to keep tracks of the folder nodes
         for filepath in read_db(DB_FILE_PATH, 'tracks'):
             # TODO not WIndows
             current_parrent = root.text(0)
-            for directory in os.path.dirname(filepath).split('\\'):
+            for directory in os.path.dirname(filepath).split('/'):
                 if (directory not in parents_dictionary):
                     if (directory != ""):
                         widget = QTreeWidgetItem(
@@ -285,7 +285,7 @@ class MainWindow(QMainWindow):
 
 if __name__ == '__main__':
     # TODO : online
-    create_db_from_path(DB_FILE_PATH, SERVERSIDE_MUSIC_FOLER_PATH)
+    # create_db_from_path(DB_FILE_PATH, SERVERSIDE_MUSIC_FOLER_PATH)
 
     app = QApplication([])
     app.setStyle('Windows')
