@@ -4,7 +4,7 @@ from socket import socket
 import sys
 
 ADRESS = '0.0.0.0'
-PORT = 3000
+PORT = 227
 
 # Create a TCP/IP socket
 sock = socket()
