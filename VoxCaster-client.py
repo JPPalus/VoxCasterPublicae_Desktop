@@ -2,8 +2,7 @@ from Base64_Assets import *
 from QAudioPlayer import QAudioPlayer
 import os
 import sqlite3 as sql
-from PyQt6.QtCore import Qt, QByteArray, QUrl, pyqtSignal
-from PyQt6.QtMultimedia import QMediaPlayer, QAudioOutput
+from PyQt6.QtCore import Qt, QByteArray
 from PyQt6.QtGui import (
     QMovie,
     QIcon,

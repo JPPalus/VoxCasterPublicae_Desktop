@@ -4,10 +4,10 @@
     - [x] ~~Wrapper d'un lecteur vlc dans un QWidget.~~
     - [x] ~~Bouton play / pause fonctionnel.~~
     - [x] ~~Volume slidder fonctionnel.~~
-    - [ ] Duration et currentTime labels fonctionnels
+    - [x] ~~Duration et currentTime labels fonctionnels.~~
     - [ ] Rendre le contrôle du volume non-logarithmique.
-    - [ ] Regarder ce que fait la méthode "parse()".
-    - [x] ~~Permettre intéraction avec le positionSlider~~. 
+    - [x] ~~Regarder ce que fait la méthode "parse()".~~
+    - [x] ~~Permettre intéraction avec le positionSlider.~~ 
     - [ ] Ajouter la gestion du MIDI.
     - [ ] get_chapters().
 - [ ] Implémenter les boutons de contrôle.
