@@ -1,7 +1,8 @@
 from Base64_Assets import *
-from socket import socket
+from platform import system
 from QAudioPlayer import QAudioPlayer
 import os
+import sys
 import sqlite3 as sql
 from PyQt6.QtCore import Qt, QByteArray
 from PyQt6.QtGui import (
@@ -25,8 +26,13 @@ from PyQt6.QtWidgets import (
     QWidget,
 )
 
-SERVERSIDE_MUSIC_FOLER_PATH = r'C:\\Users\\malekith\\Desktop\\VoxCasterPublicae_Desktop\\Half Life - Black Mesa\\'
-DB_FILE_PATH = r'C:\\Users\\malekith\\Desktop\\VoxCasterPublicae_Desktop\\VoxCaster.db'
+
+
+if sys.platform == 'darwin':
+    pass
+if os.name == 'nt':
+    SERVERSIDE_MUSIC_FOLER_PATH = r'C:\\Users\\malekith\\Desktop\\VoxCasterPublicae_Desktop\\Half Life - Black Mesa\\'
+    DB_FILE_PATH = r'C:\\Users\\malekith\\Desktop\\VoxCasterPublicae_Desktop\\VoxCaster.db'
 
 # ADRESS = '82.64.66.109'
 # PORT = 2270
