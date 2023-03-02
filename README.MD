@@ -10,11 +10,12 @@
     - [x] ~~Permettre intéraction avec le positionSlider.~~ 
     - [ ] Ajouter la gestion du MIDI.
     - [ ] get_chapters().
+- [ ] Arranger l'arbre des fichiers.
 - [ ] Implémenter les boutons de contrôle.
 - [ ] Implémenter un breadcrumb dans la QGroupBox Curently Playing" et le rendre intéractif.
 - [ ] Ajouter, via ffmpeg, à la création de la DB les metadatas.
 - [ ] Recupérer l'art et l'ajouter à la DB.
-- [ ] Migrer la gestion de la DB serverside.
+- [X] ~~Migrer la gestion de la DB serverside~~.
 - [ ] Gestion / création de playlists.
 - [ ] Ajouter des Widgets DSP.
 - [ ] Barre de menu façon Foobar2000.
