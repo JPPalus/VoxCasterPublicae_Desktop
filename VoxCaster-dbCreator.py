@@ -13,7 +13,7 @@ def create_db_from_path(db_file, path):
         curser.execute('DROP TABLE IF EXISTS tracks')
         curser.execute('CREATE TABLE tracks (filepath TEXT, filename TEXT)')
         for root, dirnames, filenames in os.walk(path):
-            curser.executemany('INSERT INTO tracks (filepath, filename) VALUES (?, ?)', ([(os.path.join('https://vox-caster.fr/', filename), filename) for filename in filenames]))
+            curser.executemany('INSERT INTO tracks (filepath, filename) VALUES (?, ?)', ([(os.path.join(url_from_path(root), filename), filename) for filename in filenames]))
             connection.commit()
     except sql.Error as error_code:
         print(error_code)
@@ -23,6 +23,7 @@ def create_db_from_path(db_file, path):
             
             
 def url_from_path(path):
+    print(path)
     return path.replace('/var/www/webapp_mal/vox_caster.fr_/', 'https://vox-caster.fr/')
             
 if __name__ == '__main__':
