@@ -265,7 +265,7 @@ class MainWindow(QMainWindow):
                     if (directory != ""):
                         widget = QTreeWidgetItem(
                             parents_dictionary[current_parrent], [directory])
-                        widget.setExpanded(True)
+                        widget.setExpanded(False)
                         parents_dictionary[directory] = widget
                         current_parrent = directory
                 else:
