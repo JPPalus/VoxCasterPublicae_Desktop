@@ -1,10 +1,9 @@
-
 # socket_echo_server.py
 
 from socket import socket
 import sys
 
-ADRESS = 'localhost'
+ADRESS = '82.64.66.109'
 PORT = 4227
 
 # Create a TCP/IP socket

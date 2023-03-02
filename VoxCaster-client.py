@@ -28,6 +28,39 @@ SERVERSIDE_MUSIC_FOLER_PATH = r'C:\\Users\\malekith\\Desktop\\VoxCasterPublicae_
 DB_FILE_PATH = r'C:\\Users\\malekith\\Desktop\\VoxCasterPublicae_Desktop\\VoxCaster.db'
 
 
+from socket import socket
+import sys
+
+ADRESS = '82.64.66.109'
+PORT = 4227
+
+# Create a TCP/IP socket
+sock = socket()
+
+# Connect the socket to the port where the server is listening
+sock.connect((ADRESS, PORT))
+print(f'connected to {ADRESS} port {PORT}')
+
+try:
+    # Send data
+    message = b'This is the message.  It will be repeated.'
+    print(f'sending {message}')
+    sock.sendall(message)
+
+    # Look for the response
+    amount_received = 0
+    amount_expected = len(message)
+
+    while amount_received < amount_expected:
+        data = sock.recv(16)
+        amount_received += len(data)
+        print(f'received {data}')
+
+finally:
+    print('closing socket')
+    sock.close()
+
+
 # Create a sqlite file from a path
 def create_db_from_path(db_file, path):
     connection = None
