@@ -266,7 +266,7 @@ class MainWindow(QMainWindow):
                     current_parrent = directory
                     continue
             widget = QTreeWidgetItem(parents_dictionary[current_parrent], [os.path.basename(filepath)])
-            widget.setIcon(0, iconFromBase64(BASE64_ICON))
+            widget.setIcon(0, iconFromBase64(BASE64_ICON_FILE))
 
 
     def on_Item_Clicked(self, item, column):

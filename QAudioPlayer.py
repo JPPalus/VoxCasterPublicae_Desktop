@@ -1,6 +1,6 @@
 import os
 import VLC
-from decimal import Decimal
+from urllib.parse import quote
 from QJumpSlider import QJumpSlider
 from PyQt6.QtGui import QFont
 from PyQt6.QtCore import (
@@ -24,7 +24,7 @@ class QAudioPlayer(QWidget):
     def __init__(self, parent=None):
         super(QAudioPlayer, self).__init__(parent)
         
-        self.vlc_instance = VLC.Instance()
+        self.vlc_instance = VLC.Instance("prefer-insecure")
         self.vlc_mediaPlayer = self.vlc_instance.media_player_new()
 
         btnSize = QSize(16, 16)
@@ -55,7 +55,7 @@ class QAudioPlayer(QWidget):
         self.positionSlider.pressed.connect(self.setPosition)
         
         self.volumeSlider = QJumpSlider(Qt.Orientation.Horizontal)
-        self.volumeSlider.setMaximum(100)
+        self.volumeSlider.setMaximum(200)
         self.volumeSlider.setValue(50)
         self.volumeSlider.valueChanged.connect(self.setVolume)
 
@@ -89,20 +89,22 @@ class QAudioPlayer(QWidget):
     def setSource(self, filePath):
         if filePath != '':
             self.stop()
-            self.media = self.vlc_instance.media_new(filePath)
+            print(filePath)
+            print(filePath.replace(' ', '%20'))
+            self.media = self.vlc_instance.media_new(filePath.replace(' ', '%20'))
             self.vlc_mediaPlayer.set_media(self.media)
             self.playButton.setEnabled(True)
             self.stopButton.setEnabled(True)
             self.statusBar.showMessage(''.join(os.path.basename(filePath)).split('.')[0])
             
-            # TODO le faire en réseau avec parse_with_option(1)
-            self.media.parse()
+            self.media.parse_with_options(1)
             while True:
                 if self.media.is_parsed():
                     # TODO c'est moche
                     break
-                
+            
             self.setDuration()
+                
             
             
     def getDuration(self):
@@ -144,7 +146,6 @@ class QAudioPlayer(QWidget):
                 self.currentPlaybackTimeLabel.setText('%02d:%02d' % (minutes, seconds))
 
             
-
     def play(self):
         if self.vlc_mediaPlayer.is_playing():
             self.vlc_mediaPlayer.pause()

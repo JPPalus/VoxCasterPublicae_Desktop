@@ -23,8 +23,8 @@ def create_db_from_path(db_file, path):
             
             
 def url_from_path(path):
-    print(path)
     return path.replace('/var/www/webapp_mal/vox_caster.fr_/', 'https://vox-caster.fr/')
+            
             
 if __name__ == '__main__':
     create_db_from_path(DB_FILE_PATH, SERVERSIDE_MUSIC_FOLER_PATH)
