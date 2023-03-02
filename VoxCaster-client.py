@@ -1,4 +1,5 @@
 from Base64_Assets import *
+from socket import socket
 from QAudioPlayer import QAudioPlayer
 import os
 import sqlite3 as sql
@@ -27,12 +28,8 @@ from PyQt6.QtWidgets import (
 SERVERSIDE_MUSIC_FOLER_PATH = r'C:\\Users\\malekith\\Desktop\\VoxCasterPublicae_Desktop\\Half Life - Black Mesa\\'
 DB_FILE_PATH = r'C:\\Users\\malekith\\Desktop\\VoxCasterPublicae_Desktop\\VoxCaster.db'
 
-
-from socket import socket
-import sys
-
 ADRESS = '82.64.66.109'
-PORT = 4227
+PORT = 2270
 
 # Create a TCP/IP socket
 sock = socket()
