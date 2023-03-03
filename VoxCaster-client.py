@@ -1,5 +1,6 @@
 from Base64_Assets import *
 from platform import system
+from collections import defaultdict
 from QAudioPlayer import QAudioPlayer
 import os
 import sys
@@ -25,8 +26,6 @@ from PyQt6.QtWidgets import (
     QVBoxLayout,
     QWidget,
 )
-
-
 
 if sys.platform == 'darwin':
     pass
@@ -187,20 +186,20 @@ class MainWindow(QMainWindow):
         self.left_pannel_layout.addWidget(self.curently_playing)
 
         # File navigation pannel
-        self.file_pannel = QScrollArea()
-        self.file_pannel_layout = QVBoxLayout()
-        self.file_pannel.setLayout(self.file_pannel_layout)
+        # self.file_pannel = QScrollArea()
+        # self.file_pannel_layout = QVBoxLayout()
+        # self.file_pannel.setLayout(self.file_pannel_layout)
         # ---------------- #
         self.file_pannel_tree = QTreeWidget()
         # ---------------- #
-        self.file_pannel.setWidget(self.file_pannel_tree)
+        # self.file_pannel.setWidget(self.file_pannel_tree)
         # ---------------- #
-        self.file_pannel.setWidgetResizable(True)
-        self.file_pannel.setSizeAdjustPolicy(self.file_pannel.SizeAdjustPolicy.AdjustToContents)
+        # self.file_pannel.setWidgetResizable(True)
+        # self.file_pannel.setSizeAdjustPolicy(self.file_pannel.SizeAdjustPolicy.AdjustToContents)
         self.populate_file_tree()
         self.file_pannel_tree.itemClicked.connect(self.on_Item_Clicked)
         # ---------------- #
-        self.left_pannel_layout.addWidget(self.file_pannel)
+        self.left_pannel_layout.addWidget(self.file_pannel_tree)
 
         # File infos pannel
         self.file_infos = QGroupBox('File infos')
@@ -252,26 +251,44 @@ class MainWindow(QMainWindow):
 
     def populate_file_tree(self):
         self.file_pannel_tree.setHeaderLabels(['Filepath'])
-        # TODO
-        root = QTreeWidgetItem(self.file_pannel_tree, ['/var/www/webapp_mal/vox_caster.fr/Music_folder/'])
-        root.setExpanded(True)
-        parents_dictionary = {root.text(0): root}
-        # We use the dictionary to keep tracks of the folder nodes
+        # For each file in the database
         for filepath in read_db(DB_FILE_PATH, 'tracks'):
-            # TODO not WIndows
-            current_parrent = root.text(0)
-            for directory in os.path.dirname(filepath).split('/'):
-                if (directory not in parents_dictionary):
-                    if (directory != ""):
-                        widget = QTreeWidgetItem(
-                            parents_dictionary[current_parrent], [directory])
-                        widget.setExpanded(False)
-                        parents_dictionary[directory] = widget
-                        current_parrent = directory
-                else:
-                    current_parrent = directory
-                    continue
-            widget = QTreeWidgetItem(parents_dictionary[current_parrent], [os.path.basename(filepath)])
+            # if node is a folder
+            if len(directories := os.path.dirname(filepath.replace('https://vox-caster.fr/Music_folder/', '')).split('/')):
+                parent = None
+                # for each element of the path that is a directory
+                for directory in directories:
+                    # If we are at the root of the tree
+                    if parent is None:
+                        # if a node with that name already exists continue
+                        if len(items := self.file_pannel_tree.findItems(directory, Qt.MatchFlag.MatchExactly, 0)):
+                            parent = items[0]
+                            continue
+                        # If not create a new node that the root of the tree
+                        else:
+                            widget = QTreeWidgetItem()
+                            widget.setText(0, directory)
+                            self.file_pannel_tree.addTopLevelItem(widget)
+                            parent = widget
+                    # if node is not a root but still a directory
+                    if parent is not None:
+                        # if the current parent has children 
+                        if child_count := parent.childCount():
+                            children = [parent.child(child_index) for child_index in range(child_count)]
+                            children_labels = [child.text(0) for child in children]
+                            # if directory is one of them he becomes the new parent
+                            if directory in children_labels:
+                                parent = children[children_labels.index(directory)]
+                            # if directory is not one of them, create a new node and it becomes the parent
+                            else:
+                                widget = QTreeWidgetItem(parent, [directory])
+                                parent = widget
+                        # if the current parent is not in the root nor have children :
+                        if parent.text(0) != directory:
+                            widget = QTreeWidgetItem(parent, [directory])
+                            parent = widget          
+            # if node is a file
+            widget = QTreeWidgetItem(parent, [os.path.basename(filepath)])
             widget.setIcon(0, iconFromBase64(BASE64_ICON_FILE))
 
 
