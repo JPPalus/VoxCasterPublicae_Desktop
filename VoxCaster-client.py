@@ -254,8 +254,8 @@ class MainWindow(QMainWindow):
         # For each file in the database
         for filepath in read_db(DB_FILE_PATH, 'tracks'):
             # if node is a folder
+            parent = None
             if len(directories := os.path.dirname(filepath.replace('https://vox-caster.fr/Music_folder/', '')).split('/')):
-                parent = None
                 # for each element of the path that is a directory
                 for directory in directories:
                     # If we are at the root of the tree
@@ -286,7 +286,7 @@ class MainWindow(QMainWindow):
                         # if the current parent is not in the root nor have children :
                         if parent.text(0) != directory:
                             widget = QTreeWidgetItem(parent, [directory])
-                            parent = widget          
+                            parent = widget   
             # if node is a file
             widget = QTreeWidgetItem(parent, [os.path.basename(filepath)])
             widget.setIcon(0, iconFromBase64(BASE64_ICON_FILE))
