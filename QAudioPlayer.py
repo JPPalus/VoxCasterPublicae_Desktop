@@ -1,18 +1,18 @@
 import os
 import VLC
-from urllib.parse import quote
+from VoxCaster_db import *
 from QJumpSlider import QJumpSlider
 from PyQt6.QtGui import QFont
 from PyQt6.QtCore import (
     Qt, 
     QSize, 
     QTimer,
+    pyqtSignal
 )
 from PyQt6.QtWidgets import (
     QPushButton, 
     QHBoxLayout, 
     QStyle,
-    QSlider,
     QLabel,
     QStatusBar,
     QVBoxLayout,
@@ -21,12 +21,20 @@ from PyQt6.QtWidgets import (
 
 
 class QAudioPlayer(QWidget):
+    
+    mediaPlayerEndReached = pyqtSignal(bool)
+    
     def __init__(self, parent=None):
         super(QAudioPlayer, self).__init__(parent)
         
         self.vlc_instance = VLC.Instance("prefer-insecure")
         self.vlc_mediaPlayer = self.vlc_instance.media_player_new()
-
+        self.vlc_event_listener  = self.vlc_mediaPlayer.event_manager()
+        self.media = None
+        
+        self.vlc_event_listener  = self.vlc_mediaPlayer.event_manager()
+        self.vlc_event_listener.event_attach(VLC.EventType.MediaPlayerEndReached, self.event_handler)
+     
         btnSize = QSize(16, 16)
 
         self.playButton = QPushButton()
@@ -89,23 +97,20 @@ class QAudioPlayer(QWidget):
     def setSource(self, filePath):
         if filePath != '':
             self.stop()
-            print(filePath)
-            print(filePath.replace(' ', '%20'))
             self.media = self.vlc_instance.media_new(filePath.replace(' ', '%20'))
             self.vlc_mediaPlayer.set_media(self.media)
             self.playButton.setEnabled(True)
             self.stopButton.setEnabled(True)
             self.statusBar.showMessage(''.join(os.path.basename(filePath)).split('.')[0])
-            
+            self.play()
             self.media.parse_with_options(1)
             while True:
                 if self.media.is_parsed():
                     # TODO c'est moche
                     break
-            
             self.setDuration()
-                
             
+                
             
     def getDuration(self):
         if self.media.is_parsed():
@@ -115,24 +120,59 @@ class QAudioPlayer(QWidget):
         
         
     def setDuration(self):
-        if self.media.is_parsed():
-            milliseconds = self.media.get_duration()
-            seconds = milliseconds // 1000
-            hours = seconds // 3600
-            seconds = seconds % 3600
-            minutes = seconds // 60
-            seconds = seconds % 60
-            if hours > 0.:
-                self.durationLabel.setText('%02d:%02d:%02d' % (hours, minutes, seconds))
-                self.currentPlaybackTimeLabel.setText('00:00:00')
-            else:
-                self.durationLabel.setText('%02d:%02d' % (minutes, seconds))
-                self.currentPlaybackTimeLabel.setText('00:00')
+        milliseconds = self.media.get_duration()
+        seconds = milliseconds // 1000
+        hours = seconds // 3600
+        seconds = seconds % 3600
+        minutes = seconds // 60
+        seconds = seconds % 60
+        if hours > 0.:
+            self.durationLabel.setText('%02d:%02d:%02d' % (hours, minutes, seconds))
+            self.currentPlaybackTimeLabel.setText('00:00:00')
         else:
-            self.durationLabel.setText('--:--')
-            self.currentPlaybackTimeLabel.setText('--:--')
-     
+            self.durationLabel.setText('%02d:%02d' % (minutes, seconds))
+            self.currentPlaybackTimeLabel.setText('00:00')
             
+                      
+    def updateDuration(self):
+        milliseconds = self.media.get_duration()
+        seconds = milliseconds // 1000
+        hours = seconds // 3600
+        seconds = seconds % 3600
+        minutes = seconds // 60
+        seconds = seconds % 60
+        if hours > 0.:
+            self.durationLabel.setText('%02d:%02d:%02d' % (hours, minutes, seconds))
+        else:
+            self.durationLabel.setText('%02d:%02d' % (minutes, seconds))
+     
+     
+    # jump 10 seconds forward 
+    def jump_forward(self):
+        if self.media:
+            current_time = self.vlc_mediaPlayer.get_time()
+            if current_time + 10000 < self.media.get_duration():
+                self.vlc_mediaPlayer.set_time(current_time + 10000)
+                self.updateUI()
+            else: 
+                duration = self.media.get_duration()
+                self.vlc_mediaPlayer.set_time(duration - 2000)
+                self.updateUI()
+            
+    
+    # jump 10 seconds backward 
+    def jump_backward(self):
+        if self.media:
+            current_time = self.vlc_mediaPlayer.get_time()
+            if current_time - 10000 > 0:
+                self.vlc_mediaPlayer.set_time(current_time - 10000)
+                self.updateUI()
+            else: 
+                self.vlc_mediaPlayer.set_time(0)
+                self.updateUI()
+     
+     
+    # in case it wasn't set properly at lauch      
     def updateTime(self):
         if (milliseconds := self.vlc_mediaPlayer.get_time()) > 0:
             seconds = milliseconds // 1000
@@ -173,6 +213,10 @@ class QAudioPlayer(QWidget):
         self.vlc_mediaPlayer.audio_set_volume(Volume)
         
 
+    def setRate(self, rate):
+        self.vlc_mediaPlayer.set_rate(rate)
+        
+
     def setPosition(self, position):
         # setting the position to where the slider was dragged
         self.vlc_mediaPlayer.set_position(position / 1000.0)
@@ -181,11 +225,18 @@ class QAudioPlayer(QWidget):
         # factor, the more precise are the results
         # (1000 should be enough)
         
+        
+    def event_handler(self, event):
+        if event.type == VLC.EventType.MediaPlayerEndReached:
+            self.mediaPlayerEndReached.emit(True)
+        
 
     def updateUI(self):
         # setting the slider to the desired position
         self.positionSlider.setValue(self.vlc_mediaPlayer.get_position() * 1000)
         self.updateTime()
+        if self.durationLabel.text() in {'--:--', '00:00', '00:00:00'}:
+            self.updateDuration()
 
         if not self.vlc_mediaPlayer.is_playing():
             self.timer.stop()

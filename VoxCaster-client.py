@@ -1,11 +1,12 @@
 from Base64_Assets import *
-from platform import system
-from collections import defaultdict
+from VoxCaster_db import *
 from QAudioPlayer import QAudioPlayer
+import random
 import os
-import sys
-import sqlite3 as sql
-from PyQt6.QtCore import Qt, QByteArray
+from PyQt6.QtCore import (
+    Qt, 
+    QByteArray,
+    QSize)
 from PyQt6.QtGui import (
     QMovie,
     QIcon,
@@ -27,85 +28,6 @@ from PyQt6.QtWidgets import (
     QWidget,
 )
 
-if sys.platform == 'darwin':
-    pass
-if os.name == 'nt':
-    SERVERSIDE_MUSIC_FOLER_PATH = r'C:\\Users\\malekith\\Desktop\\VoxCasterPublicae_Desktop\\Half Life - Black Mesa\\'
-    DB_FILE_PATH = r'C:\\Users\\malekith\\Desktop\\VoxCasterPublicae_Desktop\\VoxCaster.db'
-
-# ADRESS = '82.64.66.109'
-# PORT = 2270
-
-# # Create a TCP/IP socket
-# sock = socket()
-
-# # Connect the socket to the port where the server is listening
-# sock.connect((ADRESS, PORT))
-# print(f'connected to {ADRESS} port {PORT}')
-
-# try:
-#     # Send data
-#     message = b'This is the message.  It will be repeated.'
-#     print(f'sending {message}')
-#     sock.sendall(message)
-
-#     # Look for the response
-#     amount_received = 0
-#     amount_expected = len(message)
-
-#     while amount_received < amount_expected:
-#         data = sock.recv(16)
-#         amount_received += len(data)
-#         print(f'received {data}')
-
-# finally:
-#     print('closing socket')
-#     sock.close()
-
-
-# Create a sqlite file from a path
-def create_db_from_path(db_file, path):
-    connection = None
-    try:
-        connection = sql.connect(db_file)
-        curser = connection.cursor()
-        curser.execute('DROP TABLE IF EXISTS tracks')
-        curser.execute('CREATE TABLE tracks (filepath TEXT, filename TEXT)')
-        for root, dirnames, filenames in os.walk(path):
-            curser.executemany('INSERT INTO tracks (filepath, filename) VALUES (?, ?)', ([(os.path.join(root, filename), filename) for filename in filenames]))
-            connection.commit()
-    except sql.Error as error_code:
-        print(error_code)
-    finally:
-        if connection:
-            connection.close()
-
-# Read an sqlite file' specific table row by row
-def read_db(db_file, table_name):
-    try:
-        connection = sql.connect(db_file)
-        curser = connection.cursor()
-        for row in curser.execute(f"SELECT * FROM {table_name}"):
-            yield row[0]
-    except sql.Error as error_code:
-        print(error_code)
-    finally:
-        if connection:
-            curser.close()
-               
-def get_path_from_filename(db_file, filename):
-    try:
-        connection = sql.connect(db_file)
-        curser = connection.cursor()
-        for row in curser.execute(f'SELECT filepath FROM tracks WHERE filename = "{filename}"'):
-            return row[0]
-    except sql.Error as error_code:
-        print(error_code)
-    finally:
-        if connection:
-            curser.close()
-
-
 def iconFromBase64(base64):
     pixmap = QPixmap()
     pixmap.loadFromData(QByteArray.fromBase64(base64))
@@ -113,9 +35,30 @@ def iconFromBase64(base64):
     return icon
 
 
+class QFileSystemTreeWidgetItem(QTreeWidgetItem):
+      
+    def __lt__(self, other):
+        other_is_folder = True if other.childCount() else False
+        other_data = other.text(0)
+        is_folder = True if self.childCount() else False
+        data = self.text(0)
+        
+        if other_is_folder and not is_folder:
+            return True
+        elif not other_is_folder and is_folder:
+            return False
+        else:
+            # yes that's done on purpose !
+            return data > other_data
+
+
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
+        
+        self.playing_item = None
+        self.playing_playlist = []
+        self.playlist_order_changed = False
 
         # Main window #
         self.window_layout = QHBoxLayout()
@@ -143,8 +86,9 @@ class MainWindow(QMainWindow):
         self.audio_player = QAudioPlayer()
         self.audio_player_layout = QHBoxLayout()
         # ---------------- #
-        self.audio_player_container.setLayout(self.audio_player_layout)
+        self.audio_player.mediaPlayerEndReached.connect(self.Play_next_auto)
         # ---------------- #
+        self.audio_player_container.setLayout(self.audio_player_layout)
         self.audio_player_layout.addWidget(self.audio_player)
         # ---------------- #
         self.left_pannel_layout.addWidget(self.audio_player_container)
@@ -155,18 +99,30 @@ class MainWindow(QMainWindow):
         self.audio_controls.setLayout(self.audio_controls_layout)
         # ---------------- #
         self.audio_controls_button_next = QPushButton('Next')
-        self.audio_controls_button_add_time = QPushButton('+')
-        self.audio_controls_button_subtract_time = QPushButton('-')
+        self.audio_controls_button_subtract_time = QPushButton('<<')
+        self.audio_controls_button_add_time = QPushButton('>>')
         self.audio_controls_speed = QDoubleSpinBox()
         self.audio_controls_autoplay = QCheckBox('Autoplay')
+        self.audio_controls_singleloop = QCheckBox('Single loop')
         self.audio_controls_loop = QCheckBox('Loop')
         self.audio_controls_random = QCheckBox('Random')
         # ---------------- #
+        self.audio_controls_speed.setRange(0.3, 4.0)
+        self.audio_controls_speed.setSingleStep(0.1)
+        self.audio_controls_speed.setValue(1.0)
+        # ---------------- #
+        self.audio_controls_button_next.clicked.connect(self.Play_next)
+        self.audio_controls_speed.valueChanged.connect(self.set_rate)
+        self.audio_controls_button_subtract_time.clicked.connect(self.subtract_time)
+        self.audio_controls_button_add_time.clicked.connect(self.add_time)
+        self.audio_controls_singleloop.clicked.connect(self.playlist_order_has_changed)
+        self.audio_controls_loop.clicked.connect(self.playlist_order_has_changed)
+        self.audio_controls_autoplay.clicked.connect(self.playlist_order_has_changed)
+        self.audio_controls_random.clicked.connect(self.playlist_order_has_changed)
+        # ---------------- #
         self.audio_controls_layout.addWidget(self.audio_controls_button_next)
-        self.audio_controls_layout.addWidget(
-            self.audio_controls_button_add_time)
-        self.audio_controls_layout.addWidget(
-            self.audio_controls_button_subtract_time)
+        self.audio_controls_layout.addWidget(self.audio_controls_button_subtract_time)
+        self.audio_controls_layout.addWidget(self.audio_controls_button_add_time)
         self.audio_controls_layout.addWidget(self.audio_controls_speed)
         self.audio_controls_layout.addWidget(self.audio_controls_loop)
         self.audio_controls_layout.addWidget(self.audio_controls_autoplay)
@@ -179,28 +135,24 @@ class MainWindow(QMainWindow):
         self.curently_playing_layout = QHBoxLayout()
         self.curently_playing.setLayout(self.curently_playing_layout)
         # ---------------- #
-        self.curently_playing_label = QLabel('')
+        self.curently_playing_label_root = QLabel()
         # ---------------- #
-        self.curently_playing_layout.addWidget(self.curently_playing_label)
+        self.curently_playing_label_root.setPixmap(iconFromBase64(BASE64_ICON_AQUILA).pixmap(QSize(32, 32)))
+        # ---------------- #
+        self.curently_playing_layout.addWidget(self.curently_playing_label_root)
         # ---------------- #
         self.left_pannel_layout.addWidget(self.curently_playing)
 
         # File navigation pannel
-        # self.file_pannel = QScrollArea()
-        # self.file_pannel_layout = QVBoxLayout()
-        # self.file_pannel.setLayout(self.file_pannel_layout)
-        # ---------------- #
         self.file_pannel_tree = QTreeWidget()
         # ---------------- #
-        # self.file_pannel.setWidget(self.file_pannel_tree)
-        # ---------------- #
-        # self.file_pannel.setWidgetResizable(True)
-        # self.file_pannel.setSizeAdjustPolicy(self.file_pannel.SizeAdjustPolicy.AdjustToContents)
         self.populate_file_tree()
+        self.file_pannel_tree.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
+        self.file_pannel_tree.setSortingEnabled(False)
         self.file_pannel_tree.itemClicked.connect(self.on_Item_Clicked)
         # ---------------- #
         self.left_pannel_layout.addWidget(self.file_pannel_tree)
-
+    
         # File infos pannel
         self.file_infos = QGroupBox('File infos')
         self.file_infos_layout = QVBoxLayout()
@@ -250,7 +202,7 @@ class MainWindow(QMainWindow):
 
 
     def populate_file_tree(self):
-        self.file_pannel_tree.setHeaderLabels(['Filepath'])
+        self.file_pannel_tree.setHeaderLabels(['Files'])
         # For each file in the database
         for filepath in read_db(DB_FILE_PATH, 'tracks'):
             # if node is a folder
@@ -266,8 +218,9 @@ class MainWindow(QMainWindow):
                             continue
                         # If not create a new node that the root of the tree
                         else:
-                            widget = QTreeWidgetItem()
+                            widget = QFileSystemTreeWidgetItem()
                             widget.setText(0, directory)
+                            widget.setIcon(0, iconFromBase64(BASE64_ICON_FOLDER))
                             self.file_pannel_tree.addTopLevelItem(widget)
                             parent = widget
                     # if node is not a root but still a directory
@@ -281,37 +234,108 @@ class MainWindow(QMainWindow):
                                 parent = children[children_labels.index(directory)]
                             # if directory is not one of them, create a new node and it becomes the parent
                             else:
-                                widget = QTreeWidgetItem(parent, [directory])
+                                widget = QFileSystemTreeWidgetItem(parent, [directory])
+                                widget.setIcon(0, iconFromBase64(BASE64_ICON_FOLDER))
                                 parent = widget
                         # if the current parent is not in the root nor have children :
                         if parent.text(0) != directory:
-                            widget = QTreeWidgetItem(parent, [directory])
+                            widget = QFileSystemTreeWidgetItem(parent, [directory])
+                            widget.setIcon(0, iconFromBase64(BASE64_ICON_FOLDER))
                             parent = widget   
             # if node is a file
-            widget = QTreeWidgetItem(parent, [os.path.basename(filepath)])
+            widget = QFileSystemTreeWidgetItem(parent, [os.path.basename(filepath)])
             widget.setIcon(0, iconFromBase64(BASE64_ICON_FILE))
+        # self.file_pannel_tree.sortByColumn(0, Qt.SortOrder.AscendingOrder)
 
 
     def on_Item_Clicked(self, item, column):
-        # To be sure that the folder nodes are non-clickable
+        # if file: play
         if item.childCount() == 0:
-            # get the real path from the db
+            if self.playing_item is not None:
+                self.playing_item.setIcon(0, iconFromBase64(BASE64_ICON_FILE))
+            item.setIcon(0, iconFromBase64(BASE64_ICON_FILE_PLAYING)) 
+            self.playing_item = item
             audio_path = get_path_from_filename(DB_FILE_PATH, item.text(column))
             self.Play(audio_path)
+            self.set_playing_playlist(item)
+        # if folder expand / colapse
+        if item.childCount() > 0:
+            if item.isExpanded():
+                item.setExpanded(False)
+            else:
+                item.setExpanded(True)
         
 
     def Play(self, audio_path):
-        # TODO online
-        path = audio_path
-        self.audio_player.setSource(path)
-
+        self.audio_player.setSource(audio_path)
+        
+    
+    def Play_next(self):
+        # check if the options have changed 
+        if self.playlist_order_changed:
+            self.playlist_order_changed = False
+            self.set_playing_playlist(self.playing_item)
+        if playlist_lenght := len(self.playing_playlist):
+            current_node_index = self.playing_playlist.index(self.playing_item)
+            if self.playing_item is not None:
+                self.playing_item.setIcon(0, iconFromBase64(BASE64_ICON_FILE))
+            # if the playing item is the penultimate
+            if current_node_index < (playlist_lenght - 1):
+                self.playing_item = self.playing_playlist[current_node_index + 1]
+            # if the playing item is the last
+            if self.audio_controls_loop.isChecked():
+                if current_node_index == (playlist_lenght - 1):
+                    if self.audio_controls_loop.isChecked():
+                        self.playing_item = self.playing_playlist[0]
+            self.playing_item.setIcon(0, iconFromBase64(BASE64_ICON_FILE_PLAYING))
+            audio_path = get_path_from_filename(DB_FILE_PATH, self.playing_item.text(0))
+            self.audio_player.setSource(audio_path)
+            
+            
+    # connected to the event "mediaPlayerEndReached"
+    def Play_next_auto(self):
+        if self.audio_controls_autoplay.isChecked():
+            self.Play_next()
+           
+            
+    def set_rate(self):
+        rate = self.audio_controls_speed.value()
+        self.audio_player.setRate(rate)
+           
+           
+    def add_time(self):
+        self.audio_player.jump_forward()
+           
+            
+    def subtract_time(self):
+        self.audio_player.jump_backward()
+        
+    
+    def playlist_order_has_changed(self):
+        self.playlist_order_changed = True
+        
+        
+    def set_playing_playlist(self, node):
+        parent = node.parent()
+        self.playing_playlist = []
+        if child_count := parent.childCount():
+            for child_index in range(child_count):
+                if not parent.child(child_index).childCount():
+                    self.playing_playlist.append(parent.child(child_index))
+        if self.audio_controls_random.isChecked():
+            print("random")
+            print(self.playing_playlist)
+            random.shuffle(self.playing_playlist)
+            print(self.playing_playlist)
+    
 
 if __name__ == '__main__':
     # TODO : online
     # create_db_from_path(DB_FILE_PATH, SERVERSIDE_MUSIC_FOLER_PATH)
-
     app = QApplication([])
     app.setStyle('Windows')
     window = MainWindow()
-    window.showMaximized()
+    # window.showMaximized()
+    window.show()
     app.exec()
+    

@@ -9,8 +9,8 @@ class QJumpSlider(QSlider):
     
     pressed = pyqtSignal(int)
     
+    # Emit a signal "pressed" when the bar is clicked and set its new position
     def mousePressEvent(self, event):
-        
         super(QJumpSlider, self).mousePressEvent(event)
         if event.button() == Qt.MouseButton.LeftButton:
             val = self.pixelPosToRangeValue(event.pos())
