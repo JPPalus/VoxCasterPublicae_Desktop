@@ -8,7 +8,6 @@ from PyQt6.QtCore import (
     QByteArray,
     QSize)
 from PyQt6.QtGui import (
-    QMovie,
     QIcon,
     QPixmap)
 from PyQt6.QtWidgets import (
@@ -25,7 +24,7 @@ from PyQt6.QtWidgets import (
     QScrollArea,
     QHBoxLayout,
     QVBoxLayout,
-    QWidget,
+    QWidget
 )
 
 def iconFromBase64(base64):
@@ -44,12 +43,11 @@ class QFileSystemTreeWidgetItem(QTreeWidgetItem):
         data = self.text(0)
         
         if other_is_folder and not is_folder:
-            return True
-        elif not other_is_folder and is_folder:
             return False
+        elif not other_is_folder and is_folder:
+            return True
         else:
-            # yes that's done on purpose !
-            return data > other_data
+            return data < other_data
 
 
 class MainWindow(QMainWindow):
@@ -87,6 +85,7 @@ class MainWindow(QMainWindow):
         self.audio_player_layout = QHBoxLayout()
         # ---------------- #
         self.audio_player.mediaPlayerEndReached.connect(self.Play_next_auto)
+        self.audio_player.spacebarPressed.connect(self.spacebar_event)
         # ---------------- #
         self.audio_player_container.setLayout(self.audio_player_layout)
         self.audio_player_layout.addWidget(self.audio_player)
@@ -139,6 +138,7 @@ class MainWindow(QMainWindow):
         # ---------------- #
         self.curently_playing_label_root.setPixmap(iconFromBase64(BASE64_ICON_AQUILA).pixmap(QSize(32, 32)))
         # ---------------- #
+        self.curently_playing_layout.setAlignment(Qt.AlignmentFlag.AlignLeft)
         self.curently_playing_layout.addWidget(self.curently_playing_label_root)
         # ---------------- #
         self.left_pannel_layout.addWidget(self.curently_playing)
@@ -147,40 +147,33 @@ class MainWindow(QMainWindow):
         self.file_pannel_tree = QTreeWidget()
         # ---------------- #
         self.populate_file_tree()
+        self.file_pannel_tree.setSortingEnabled(True)
+        self.file_pannel_tree.sortByColumn(0, Qt.SortOrder.AscendingOrder)
+        self.file_pannel_tree.header().setSortIndicatorShown(False)
+        self.file_pannel_tree.header().setSectionsClickable(False)
+        # self.file_pannel_tree.header().setStretchLastSection(True)
+        #TODO
         self.file_pannel_tree.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
-        self.file_pannel_tree.setSortingEnabled(False)
         self.file_pannel_tree.itemClicked.connect(self.on_Item_Clicked)
         # ---------------- #
         self.left_pannel_layout.addWidget(self.file_pannel_tree)
     
         # File infos pannel
-        self.file_infos = QGroupBox('File infos')
+        self.file_infos_tabs = QTabWidget()
+        self.file_info_tab = QScrollArea()
+        self.file_art_tab = QWidget()
         self.file_infos_layout = QVBoxLayout()
-        self.file_infos.setLayout(self.file_infos_layout)
+        self.file_art_layout = QVBoxLayout()
+        self.file_info_tab.setLayout(self.file_infos_layout)
+        self.file_art_tab.setLayout(self.file_art_layout)
         # ---------------- #
-        self.file_info_scrollarea = QScrollArea()
         self.file_infos_label = QLabel('')
+        self.file_info_tab.setWidget(self.file_infos_label)
         # ---------------- #
-        self.file_info_scrollarea.setWidget(self.file_infos_label)
-        self.file_infos_layout.addWidget(self.file_info_scrollarea)
+        self.file_infos_tabs.addTab(self.file_art_tab, 'Art')
+        self.file_infos_tabs.addTab(self.file_info_tab, 'File infos')
         # ---------------- #
-        self.right_pannel_layout.addWidget(self.file_infos)
-
-        # Art
-        self.art = QGroupBox('Art')
-        self.art_layout = QVBoxLayout()
-        self.art.setLayout(self.art_layout)
-        # ---------------- #
-        self.art_label = QLabel('')
-        self.art_movie = QMovie()
-        # ---------------- #
-        self.art_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        # ---------------- #
-        self.art_label.setMovie(self.art_movie)
-        self.art_layout.addWidget(self.art_label)
-        self.art_label.setMovie(self.art_movie)
-        # ---------------- #
-        self.right_pannel_layout.addWidget(self.art)
+        self.right_pannel_layout.addWidget(self.file_infos_tabs)
 
         # DSP tab
         self.dsp_tabs = QTabWidget()
@@ -245,7 +238,6 @@ class MainWindow(QMainWindow):
             # if node is a file
             widget = QFileSystemTreeWidgetItem(parent, [os.path.basename(filepath)])
             widget.setIcon(0, iconFromBase64(BASE64_ICON_FILE))
-        # self.file_pannel_tree.sortByColumn(0, Qt.SortOrder.AscendingOrder)
 
 
     def on_Item_Clicked(self, item, column):
@@ -264,7 +256,31 @@ class MainWindow(QMainWindow):
                 item.setExpanded(False)
             else:
                 item.setExpanded(True)
+        self.depopulate_layout(self.curently_playing_layout)
+        self.populate_breadcrumbs(item)
         
+    
+    def depopulate_layout(self, layout):
+        for i in reversed(range(layout.count())): 
+            layout.itemAt(i).widget().setParent(None)
+    
+    
+    def populate_breadcrumbs(self, node):
+        self.curently_playing_layout.addWidget(self.curently_playing_label_root)
+        current_node = node
+        reverse_breadcrumbs = [current_node.text(0)]
+        while current_node.parent():
+            current_node = current_node.parent()
+            reverse_breadcrumbs.append(current_node.text(0))
+        reverse_breadcrumbs.reverse()
+        for element in reverse_breadcrumbs:
+            element_label = QLabel()
+            element_label.setText(element)
+            arrow_label = QLabel()
+            arrow_label.setPixmap(iconFromBase64(BASE64_ICON_TRIANGLE).pixmap(QSize(7, 7)))
+            self.curently_playing_layout.addWidget(arrow_label)
+            self.curently_playing_layout.addWidget(element_label)
+    
 
     def Play(self, audio_path):
         self.audio_player.setSource(audio_path)
@@ -275,6 +291,7 @@ class MainWindow(QMainWindow):
         if self.playlist_order_changed:
             self.playlist_order_changed = False
             self.set_playing_playlist(self.playing_item)
+        # if playlist exists
         if playlist_lenght := len(self.playing_playlist):
             current_node_index = self.playing_playlist.index(self.playing_item)
             if self.playing_item is not None:
@@ -283,10 +300,13 @@ class MainWindow(QMainWindow):
             if current_node_index < (playlist_lenght - 1):
                 self.playing_item = self.playing_playlist[current_node_index + 1]
             # if the playing item is the last
-            if self.audio_controls_loop.isChecked():
-                if current_node_index == (playlist_lenght - 1):
-                    if self.audio_controls_loop.isChecked():
-                        self.playing_item = self.playing_playlist[0]
+            if current_node_index == (playlist_lenght - 1):
+                # if we loop
+                if self.audio_controls_loop.isChecked():
+                    self.playing_item = self.playing_playlist[0]
+                # if we don't loop, do nothing
+                else : 
+                    return
             self.playing_item.setIcon(0, iconFromBase64(BASE64_ICON_FILE_PLAYING))
             audio_path = get_path_from_filename(DB_FILE_PATH, self.playing_item.text(0))
             self.audio_player.setSource(audio_path)
@@ -327,6 +347,17 @@ class MainWindow(QMainWindow):
             print(self.playing_playlist)
             random.shuffle(self.playing_playlist)
             print(self.playing_playlist)
+            
+            
+    def spacebar_event(self, curently_playing_filepath):
+        items_selected = self.file_pannel_tree.selectedItems()
+        for item in items_selected:
+            audio_path = get_path_from_filename(DB_FILE_PATH, item.text(0))
+            if curently_playing_filepath == audio_path:
+                self.audio_player.play()
+            else:
+                self.on_Item_Clicked(item, 0)
+                
     
 
 if __name__ == '__main__':

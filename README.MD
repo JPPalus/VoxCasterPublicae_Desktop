@@ -8,7 +8,7 @@
     - [ ] Rendre le contrôle du volume non-logarithmique.
     - [x] ~~Regarder ce que fait la méthode "parse()".~~
     - [x] ~~Permettre intéraction avec le positionSlider.~~ 
-    - [ ] Icônes de volume.
+    - [x] ~~Icônes de volume~~.
     - [ ] Ajouter la gestion du MIDI.
     - [ ] get_chapters().
 - [x] ~~Arranger l'arbre des fichiers.~~
@@ -17,11 +17,11 @@
 - [ ] Implémenter un breadcrumb dans la QGroupBox Curently Playing" et le rendre intéractif.
 - [ ] Ajouter, via ffmpeg, à la création de la DB les metadatas.
 - [ ] Recupérer l'art et l'ajouter à la DB.
-- [X] ~~Migrer la gestion de la DB serverside~~.
+- [x] ~~Migrer la gestion de la DB serverside~~.
 - [ ] Gestion / création de playlists.
 - [ ] Ajouter des Widgets DSP.
 - [ ] Barre de menu façon Foobar2000.
-- [ ] Contrôles au clavier.
+- [x] ~~Contrôles au clavier~~.
 - [ ] Download.
 - [ ] Style.
 
