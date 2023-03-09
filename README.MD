@@ -19,12 +19,18 @@
 - [ ] Recupérer l'art et l'ajouter à la DB.
 - [x] ~~Migrer la gestion de la DB serverside~~.
 - [ ] Gestion / création de playlists.
-- [ ] Ajouter des Widgets DSP.
+- [ ] Ajouter des Widgets DSP. 
 - [ ] Barre de menu façon Foobar2000.
+    - [ ] Reload DB
 - [x] ~~Contrôles au clavier~~.
 - [ ] Download.
 - [ ] Style.
 
+
+### BUGS
+- [ ] QAudioplayer.statusBar ne gère pas les noms de fichiers contenant un point. QAudioPlayer.py lign 145.
+- [ ] Les scrollbars du breadcrumb n'applique pas la setStyleSheet. VoxCaster-client.py ligne 158.
+- [ ] Le fichier OST -> Film -> Alien -> 1-15 The Shaft n'est pas dans le bon dossier
 ---
 
 ### Détails d'implémentation

@@ -27,6 +27,8 @@ from PyQt6.QtWidgets import (
     QWidget
 )
 
+SPECIFIC_ROOT = 'https://vox-caster.fr/Music_folder/'
+
 def iconFromBase64(base64):
     pixmap = QPixmap()
     pixmap.loadFromData(QByteArray.fromBase64(base64))
@@ -57,6 +59,8 @@ class MainWindow(QMainWindow):
         self.playing_item = None
         self.playing_playlist = []
         self.playlist_order_changed = False
+        self.breadcrumb_nodes = []
+        self.curently_selected_node = None
 
         # Main window #
         self.window_layout = QHBoxLayout()
@@ -131,13 +135,29 @@ class MainWindow(QMainWindow):
 
         # Curently playing breadcrumbs
         self.curently_playing = QGroupBox('Curently playing')
+        self.currently_playing_scrollArea = QScrollArea()
+        self.currently_playing_scrollArea_widget = QWidget()
         self.curently_playing_layout = QHBoxLayout()
-        self.curently_playing.setLayout(self.curently_playing_layout)
+        self.currently_playing_GoupBox_layout = QHBoxLayout()
         # ---------------- #
-        self.curently_playing_label_root = QLabel()
+        self.curently_playing.setLayout(self.currently_playing_GoupBox_layout)
+        self.currently_playing_GoupBox_layout.addWidget(self.currently_playing_scrollArea)
+        self.currently_playing_scrollArea.setWidget(self.currently_playing_scrollArea_widget)
+        self.currently_playing_scrollArea_widget.setLayout(self.curently_playing_layout)
         # ---------------- #
-        self.curently_playing_label_root.setPixmap(iconFromBase64(BASE64_ICON_AQUILA).pixmap(QSize(32, 32)))
+        self.curently_playing_label_root = QPushButton()
+        self.curently_playing_label_root.setIcon(iconFromBase64(BASE64_ICON_AQUILA))
+        self.curently_playing_label_root.setIconSize(QSize(32,32))
+        self.curently_playing_label_root.clicked.connect(self.collapse_all_nodes)
         # ---------------- #
+        self.curently_playing.setFixedHeight(70)
+        self.curently_playing.setContentsMargins(0, 10, 0, 0)
+        self.currently_playing_scrollArea.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
+        self.currently_playing_scrollArea.setWidgetResizable(True)
+        self.currently_playing_scrollArea.verticalScrollBar().setDisabled(True)
+        self.currently_playing_scrollArea.setStyleSheet("border: 0;"
+                                                        "QScrollBar::horizontal {height: 3px;}")
+        self.curently_playing_layout.setContentsMargins(0, 0, 0, 0)
         self.curently_playing_layout.setAlignment(Qt.AlignmentFlag.AlignLeft)
         self.curently_playing_layout.addWidget(self.curently_playing_label_root)
         # ---------------- #
@@ -151,7 +171,6 @@ class MainWindow(QMainWindow):
         self.file_pannel_tree.sortByColumn(0, Qt.SortOrder.AscendingOrder)
         self.file_pannel_tree.header().setSortIndicatorShown(False)
         self.file_pannel_tree.header().setSectionsClickable(False)
-        # self.file_pannel_tree.header().setStretchLastSection(True)
         #TODO
         self.file_pannel_tree.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
         self.file_pannel_tree.itemClicked.connect(self.on_Item_Clicked)
@@ -200,7 +219,7 @@ class MainWindow(QMainWindow):
         for filepath in read_db(DB_FILE_PATH, 'tracks'):
             # if node is a folder
             parent = None
-            if len(directories := os.path.dirname(filepath.replace('https://vox-caster.fr/Music_folder/', '')).split('/')):
+            if len(directories := os.path.dirname(filepath.replace(SPECIFIC_ROOT, '')).split('/')):
                 # for each element of the path that is a directory
                 for directory in directories:
                     # If we are at the root of the tree
@@ -242,6 +261,7 @@ class MainWindow(QMainWindow):
 
     def on_Item_Clicked(self, item, column):
         # if file: play
+        self.curently_selected_node = item
         if item.childCount() == 0:
             if self.playing_item is not None:
                 self.playing_item.setIcon(0, iconFromBase64(BASE64_ICON_FILE))
@@ -250,14 +270,20 @@ class MainWindow(QMainWindow):
             audio_path = get_path_from_filename(DB_FILE_PATH, item.text(column))
             self.Play(audio_path)
             self.set_playing_playlist(item)
-        # if folder expand / colapse
+            self.depopulate_layout(self.curently_playing_layout)
+            self.populate_breadcrumbs(item)
+        # if folder expand / collapse
         if item.childCount() > 0:
             if item.isExpanded():
                 item.setExpanded(False)
+                for child_index in range(item.childCount()):
+                    item.child(child_index).setExpanded(False)
             else:
                 item.setExpanded(True)
-        self.depopulate_layout(self.curently_playing_layout)
-        self.populate_breadcrumbs(item)
+            # to keep the breadcrumbs pointing on the currently playing item
+            if not self.audio_player.isPlaying():
+                self.depopulate_layout(self.curently_playing_layout)
+                self.populate_breadcrumbs(item)
         
     
     def depopulate_layout(self, layout):
@@ -268,18 +294,29 @@ class MainWindow(QMainWindow):
     def populate_breadcrumbs(self, node):
         self.curently_playing_layout.addWidget(self.curently_playing_label_root)
         current_node = node
+        self.breadcrumb_nodes = [current_node]
         reverse_breadcrumbs = [current_node.text(0)]
         while current_node.parent():
             current_node = current_node.parent()
-            reverse_breadcrumbs.append(current_node.text(0))
+            if current_node.text(0) not in reverse_breadcrumbs:
+                reverse_breadcrumbs.append(current_node.text(0))
+                self.breadcrumb_nodes.append(current_node)
         reverse_breadcrumbs.reverse()
         for element in reverse_breadcrumbs:
-            element_label = QLabel()
-            element_label.setText(element)
-            arrow_label = QLabel()
-            arrow_label.setPixmap(iconFromBase64(BASE64_ICON_TRIANGLE).pixmap(QSize(7, 7)))
-            self.curently_playing_layout.addWidget(arrow_label)
-            self.curently_playing_layout.addWidget(element_label)
+            if element:
+                element_label = QPushButton()
+                element_label.setText(element)
+                element_label.clicked.connect(self.breadcrumbs_clicked)
+                element_label.setStyleSheet("border:0;")
+                arrow_label = QLabel()
+                arrow_label.setPixmap(iconFromBase64(BASE64_ICON_TRIANGLE).pixmap(QSize(7, 7)))
+                self.curently_playing_layout.addWidget(arrow_label)
+                self.curently_playing_layout.addWidget(element_label)
+        self.currently_playing_scrollArea.verticalScrollBar().setEnabled(False)
+        
+    
+    def collapse_all_nodes(self):
+        self.file_pannel_tree.collapseAll()
     
 
     def Play(self, audio_path):
@@ -358,13 +395,29 @@ class MainWindow(QMainWindow):
             else:
                 self.on_Item_Clicked(item, 0)
                 
+                
+    def breadcrumbs_clicked(self):
+        for node in self.breadcrumb_nodes:
+            if node.text(0) == self.sender().text():
+                node.setExpanded(True)
+                parent = node.parent()
+                while parent:
+                    parent.setExpanded(True)
+                    parent = parent.parent()
+                for child_index in range(node.childCount()):
+                    node.child(child_index).setExpanded(False)
+                self.curently_selected_node.setSelected(False)
+                self.curently_selected_node = node
+                node.setSelected(True)
+                self.file_pannel_tree.scrollToItem(node)
+                
     
 
 if __name__ == '__main__':
     # TODO : online
     # create_db_from_path(DB_FILE_PATH, SERVERSIDE_MUSIC_FOLER_PATH)
     app = QApplication([])
-    app.setStyle('Windows')
+    # app.setStyle('Windows')
     window = MainWindow()
     # window.showMaximized()
     window.show()
