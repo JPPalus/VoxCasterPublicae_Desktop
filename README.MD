@@ -28,8 +28,8 @@
 
 
 ### BUGS
-- [ ] QAudioplayer.statusBar ne gère pas les noms de fichiers contenant un point. QAudioPlayer.py lign 145.
-- [ ] Les scrollbars du breadcrumb n'applique pas la setStyleSheet. VoxCaster-client.py ligne 158.
+- [ ] QAudioplayer.statusBar ne gère pas les noms de fichiers contenant un point. QAudioPlayer.py ligne 145.
+- [ ] Les scrollbars du breadcrumb n'appliquent pas la setStyleSheet. VoxCaster-client.py ligne 158.
 - [ ] Le fichier OST -> Film -> Alien -> 1-15 The Shaft n'est pas dans le bon dossier
 ---
 
