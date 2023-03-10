@@ -14,8 +14,8 @@
 - [x] ~~Arranger l'arbre des fichiers.~~
 - [x] Mettre un slider horizontal sur l'arbre.
 - [x] ~~Implémenter les boutons de contrôle.~~
-- [ ] Implémenter un breadcrumb dans la QGroupBox Curently Playing" et le rendre intéractif.
-- [ ] Ajouter, via ffmpeg, à la création de la DB les metadatas.
+- [X] ~~Implémenter un breadcrumb dans la QGroupBox Curently Playing" et le rendre intéractif.~~
+- [X] ~~Ajouter, via ffmpeg, à la création de la DB les metadatas.~~
 - [ ] Recupérer l'art et l'ajouter à la DB.
 - [x] ~~Migrer la gestion de la DB serverside~~.
 - [ ] Gestion / création de playlists.
@@ -29,7 +29,6 @@
 
 ### BUGS
 - [ ] QAudioplayer.statusBar ne gère pas les noms de fichiers contenant un point. QAudioPlayer.py ligne 145.
-- [ ] Les scrollbars du breadcrumb n'appliquent pas la setStyleSheet. VoxCaster-client.py ligne 158.
 - [ ] Le fichier OST -> Film -> Alien -> 1-15 The Shaft n'est pas dans le bon dossier
 ---
 
@@ -46,3 +45,8 @@ OSError: dlopen(libvlc.dylib, X): image not found
 Problème réglé par : 
 - brew install --cask vlc
 - Mettre "lib/libvlc.dylib" dans le PATH
+
+### Requirements 
+
+PyQt6 >= 6.4.2
+VLC media player >= 3.0

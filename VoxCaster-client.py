@@ -9,7 +9,7 @@ from PyQt6.QtCore import (
     QSize)
 from PyQt6.QtGui import (
     QIcon,
-    QPixmap)
+    QPixmap,)
 from PyQt6.QtWidgets import (
     QApplication,
     QMainWindow,
@@ -53,6 +53,7 @@ class QFileSystemTreeWidgetItem(QTreeWidgetItem):
 
 
 class MainWindow(QMainWindow):
+    
     def __init__(self):
         super().__init__()
         
@@ -79,6 +80,8 @@ class MainWindow(QMainWindow):
         # ---------------- #
         self.left_pannel.setLayout(self.left_pannel_layout)
         self.right_pannel.setLayout(self.right_pannel_layout)
+        # ---------------- #
+        self.right_pannel.setFixedWidth(402)
         # ---------------- #
         self.window_layout.addWidget(self.left_pannel, 50)
         self.window_layout.addWidget(self.right_pannel, 50)
@@ -153,10 +156,9 @@ class MainWindow(QMainWindow):
         self.curently_playing.setFixedHeight(70)
         self.curently_playing.setContentsMargins(0, 10, 0, 0)
         self.currently_playing_scrollArea.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
+        self.currently_playing_scrollArea.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         self.currently_playing_scrollArea.setWidgetResizable(True)
-        self.currently_playing_scrollArea.verticalScrollBar().setDisabled(True)
-        self.currently_playing_scrollArea.setStyleSheet("border: 0;"
-                                                        "QScrollBar::horizontal {height: 3px;}")
+        self.currently_playing_scrollArea.setStyleSheet("border: 0;")
         self.curently_playing_layout.setContentsMargins(0, 0, 0, 0)
         self.curently_playing_layout.setAlignment(Qt.AlignmentFlag.AlignLeft)
         self.curently_playing_layout.addWidget(self.curently_playing_label_root)
@@ -181,13 +183,22 @@ class MainWindow(QMainWindow):
         self.file_infos_tabs = QTabWidget()
         self.file_info_tab = QScrollArea()
         self.file_art_tab = QWidget()
-        self.file_infos_layout = QVBoxLayout()
-        self.file_art_layout = QVBoxLayout()
-        self.file_info_tab.setLayout(self.file_infos_layout)
-        self.file_art_tab.setLayout(self.file_art_layout)
+        self.file_art_tab_layout = QVBoxLayout()
         # ---------------- #
         self.file_infos_label = QLabel('')
         self.file_info_tab.setWidget(self.file_infos_label)
+        self.file_art_label = QLabel()
+        self.file_art_tab.setLayout(self.file_art_tab_layout)
+        self.file_art_tab_layout.addWidget(self.file_art_label)
+        # ---------------- #
+        self.file_info_tab.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
+        self.file_info_tab.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
+        self.file_info_tab.setWidgetResizable(True)
+        self.file_art_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.file_art_label.setScaledContents(True)
+        self.file_art_label.setFixedWidth(360)
+        self.file_art_label.setFixedHeight(360)
+        # self.resized.connect(self.keep_aspect_ratio)
         # ---------------- #
         self.file_infos_tabs.addTab(self.file_art_tab, 'Art')
         self.file_infos_tabs.addTab(self.file_info_tab, 'File infos')
@@ -216,7 +227,7 @@ class MainWindow(QMainWindow):
     def populate_file_tree(self):
         self.file_pannel_tree.setHeaderLabels(['Files'])
         # For each file in the database
-        for filepath in read_db(DB_FILE_PATH, 'tracks'):
+        for filepath in read_db(DB_FILE_PATH, 'tracks', 'filepath'):
             # if node is a folder
             parent = None
             if len(directories := os.path.dirname(filepath.replace(SPECIFIC_ROOT, '')).split('/')):
@@ -272,6 +283,8 @@ class MainWindow(QMainWindow):
             self.set_playing_playlist(item)
             self.depopulate_layout(self.curently_playing_layout)
             self.populate_breadcrumbs(item)
+            self.populate_cover_art_pannel(item.text(column))
+            self.populate_file_info_pannel(item.text(column))
         # if folder expand / collapse
         if item.childCount() > 0:
             if item.isExpanded():
@@ -313,6 +326,20 @@ class MainWindow(QMainWindow):
                 self.curently_playing_layout.addWidget(arrow_label)
                 self.curently_playing_layout.addWidget(element_label)
         self.currently_playing_scrollArea.verticalScrollBar().setEnabled(False)
+        
+        
+    def populate_file_info_pannel(self, filename):
+        metadatas = get_metadatas_from_filename(DB_FILE_PATH, filename)
+        self.file_infos_label.setText(metadatas)
+        
+
+    def populate_cover_art_pannel(self, filename):
+        cover_art_data = get_cover_art_from_filename(DB_FILE_PATH, filename)
+        cover_art_pixmap = QPixmap()
+        cover_art_pixmap.loadFromData(cover_art_data)
+        width = self.file_art_label.width()
+        height = self.file_art_label.height()
+        self.file_art_label.setPixmap(cover_art_pixmap.scaled(width, height, Qt.AspectRatioMode.KeepAspectRatio))
         
     
     def collapse_all_nodes(self):
