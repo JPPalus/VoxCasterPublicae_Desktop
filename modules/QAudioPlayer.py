@@ -1,8 +1,8 @@
 import os
-import VLC
-from Base64_Assets import *
-from VoxCaster_db import *
-from QJumpSlider import QJumpSlider
+import modules.VLC as VLC
+from modules.Base64_Assets import *
+from modules.VoxCaster_db import *
+from modules.QJumpSlider import QJumpSlider
 from PyQt6.QtGui import QFont
 from PyQt6.QtGui import (
     QIcon,

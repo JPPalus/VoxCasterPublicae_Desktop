@@ -6,9 +6,7 @@ import sqlite3 as sql
 if sys.platform == 'darwin':
     pass
 if os.name == 'nt':
-    SERVERSIDE_MUSIC_FOLER_PATH = r'C:\\Users\\malekith\\Desktop\\VoxCasterPublicae_Desktop\\Half Life - Black Mesa\\'
-    DB_FILE_PATH = r'C:\\Users\\malekith\\Desktop\\VoxCasterPublicae_Desktop\\VoxCaster.db'
-    
+    DB_FILE_PATH = r'C:\\Users\\malekith\\Desktop\\VoxCasterPublicae_Desktop\\assets\\VoxCaster.db'
     
 
 # Create a sqlite file from a path
