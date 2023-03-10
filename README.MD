@@ -16,7 +16,7 @@
 - [x] ~~Implémenter les boutons de contrôle.~~
 - [X] ~~Implémenter un breadcrumb dans la QGroupBox Curently Playing" et le rendre intéractif.~~
 - [X] ~~Ajouter, via ffmpeg, à la création de la DB les metadatas.~~
-- [ ] Recupérer l'art et l'ajouter à la DB.
+- [X] ~~Recupérer l'art et l'ajouter à la DB.~~
 - [x] ~~Migrer la gestion de la DB serverside~~.
 - [ ] Gestion / création de playlists.
 - [ ] Ajouter des Widgets DSP. 
