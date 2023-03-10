@@ -46,6 +46,7 @@ class QAudioPlayer(QWidget):
         self.vlc_event_listener  = self.vlc_mediaPlayer.event_manager()
         self.media = None
         self.media_filepath = ''
+        self.volume = 50
         
         self.vlc_event_listener  = self.vlc_mediaPlayer.event_manager()
         self.vlc_event_listener.event_attach(VLC.EventType.MediaPlayerEndReached, self.event_handler)
@@ -100,8 +101,11 @@ class QAudioPlayer(QWidget):
         self.volumeSlider.setFixedWidth(150)
         self.volumeSlider.valueChanged.connect(self.setVolume)
         
-        self.volume_icon = QLabel()
-        self.volume_icon.setPixmap(iconFromBase64(BASE64_ICON_SOUND).pixmap(QSize(12, 12)))
+        self.volume_icon = QPushButton()
+        self.volume_icon.setIcon(iconFromBase64(BASE64_ICON_SOUND))
+        self.volume_icon.setIconSize(QSize(12, 12))
+        self.volume_icon.setStyleSheet("border: 0;")
+        self.volume_icon.clicked.connect(self.mute_unmute)
         
         self.volumeStatusBar = QLabel()
         self.volumeStatusBar.setText('50%')
@@ -254,12 +258,28 @@ class QAudioPlayer(QWidget):
 
 
     def setVolume(self, Volume):
+        self.volume = Volume
         self.vlc_mediaPlayer.audio_set_volume(Volume)
         self.volumeStatusBar.setText(f'{Volume}%')
         if not Volume:
-            self.volume_icon.setPixmap(iconFromBase64(BASE64_ICON_MUTE).pixmap(QSize(12, 12)))
+            self.volume_icon.setIcon(iconFromBase64(BASE64_ICON_MUTE))
+            self.volume_icon.setIconSize(QSize(12, 12))
         else:
-            self.volume_icon.setPixmap(iconFromBase64(BASE64_ICON_SOUND).pixmap(QSize(12, 12)))
+            self.volume_icon.setIcon(iconFromBase64(BASE64_ICON_SOUND))
+            self.volume_icon.setIconSize(QSize(12, 12))
+            
+    
+    def mute_unmute(self):
+        volume = self.vlc_mediaPlayer.audio_get_volume()
+        if volume:
+            self.vlc_mediaPlayer.audio_set_volume(0)
+            self.volume_icon.setIcon(iconFromBase64(BASE64_ICON_MUTE))
+            self.volume_icon.setIconSize(QSize(12, 12))
+        else:
+            self.vlc_mediaPlayer.audio_set_volume(self.volume)
+            self.volume_icon.setIcon(iconFromBase64(BASE64_ICON_SOUND))
+            self.volume_icon.setIconSize(QSize(12, 12))
+        
 
     def setRate(self, rate):
         self.vlc_mediaPlayer.set_rate(rate)

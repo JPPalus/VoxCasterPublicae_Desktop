@@ -69,6 +69,7 @@ class MainWindow(QMainWindow):
         self.container.setLayout(self.window_layout)
         # ---------------- #
         self.setWindowTitle("Vox Xaster Publicae")
+        self.setWindowIcon(iconFromBase64(BASE64_ICON_VOX))
         # ---------------- #
         self.setCentralWidget(self.container)
 
@@ -444,7 +445,7 @@ if __name__ == '__main__':
     # TODO : online
     # create_db_from_path(DB_FILE_PATH, SERVERSIDE_MUSIC_FOLER_PATH)
     app = QApplication([])
-    # app.setStyle('Windows')
+    app.setStyle('WindowsVista')
     window = MainWindow()
     # window.showMaximized()
     window.show()
