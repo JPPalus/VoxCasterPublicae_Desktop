@@ -1,6 +1,6 @@
-from Base64_Assets import *
-from VoxCaster_db import *
-from QAudioPlayer import QAudioPlayer
+from modules.Base64_Assets import *
+from modules.VoxCaster_db import *
+from modules.QAudioPlayer import QAudioPlayer
 import random
 import os
 from PyQt6.QtCore import (
