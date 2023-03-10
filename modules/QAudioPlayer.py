@@ -1,5 +1,5 @@
 import os
-import modules.VLC as VLC
+import vlc as VLC
 from modules.Base64_Assets import *
 from modules.VoxCaster_db import *
 from modules.QJumpSlider import QJumpSlider
@@ -148,7 +148,8 @@ class QAudioPlayer(QWidget):
             self.stopButton.setEnabled(True)
             self.statusBar.showMessage(''.join(os.path.basename(filePath)).split('.')[0])
             self.play()
-            self.media.parse_with_options(1)
+            # online, timeout in seconds
+            self.media.parse_with_options(1, 2)
             while True:
                 if self.media.is_parsed():
                     # TODO c'est moche
