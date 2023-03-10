@@ -29,10 +29,15 @@ from PyQt6.QtWidgets import (
 
 SPECIFIC_ROOT = 'https://vox-caster.fr/Music_folder/'
 
-def iconFromBase64(base64):
+
+def pixmapFromBase64(base64):
     pixmap = QPixmap()
     pixmap.loadFromData(QByteArray.fromBase64(base64))
-    icon = QIcon(pixmap)
+    return pixmap
+
+
+def iconFromBase64(base64):
+    icon = QIcon(pixmapFromBase64(base64))
     return icon
 
 
@@ -174,7 +179,6 @@ class MainWindow(QMainWindow):
         self.file_pannel_tree.sortByColumn(0, Qt.SortOrder.AscendingOrder)
         self.file_pannel_tree.header().setSortIndicatorShown(False)
         self.file_pannel_tree.header().setSectionsClickable(False)
-        #TODO
         self.file_pannel_tree.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
         self.file_pannel_tree.itemClicked.connect(self.on_Item_Clicked)
         # ---------------- #
@@ -199,7 +203,7 @@ class MainWindow(QMainWindow):
         self.file_art_label.setScaledContents(True)
         self.file_art_label.setFixedWidth(360)
         self.file_art_label.setFixedHeight(360)
-        # self.resized.connect(self.keep_aspect_ratio)
+        self.file_art_label.setPixmap(pixmapFromBase64(BASE64_ICON_VOX))
         # ---------------- #
         self.file_infos_tabs.addTab(self.file_art_tab, 'Art')
         self.file_infos_tabs.addTab(self.file_info_tab, 'File infos')
@@ -336,11 +340,14 @@ class MainWindow(QMainWindow):
 
     def populate_cover_art_pannel(self, filename):
         cover_art_data = get_cover_art_from_filename(DB_FILE_PATH, filename)
-        cover_art_pixmap = QPixmap()
-        cover_art_pixmap.loadFromData(cover_art_data)
-        width = self.file_art_label.width()
-        height = self.file_art_label.height()
-        self.file_art_label.setPixmap(cover_art_pixmap.scaled(width, height, Qt.AspectRatioMode.KeepAspectRatio))
+        if cover_art_data:
+            cover_art_pixmap = QPixmap()
+            cover_art_pixmap.loadFromData(cover_art_data)
+            width = self.file_art_label.width()
+            height = self.file_art_label.height()
+            self.file_art_label.setPixmap(cover_art_pixmap.scaled(width, height, Qt.AspectRatioMode.KeepAspectRatio))
+        else :
+            self.file_art_label.setPixmap(pixmapFromBase64(BASE64_ICON_VOX))
         
     
     def collapse_all_nodes(self):
@@ -442,10 +449,8 @@ class MainWindow(QMainWindow):
     
 
 if __name__ == '__main__':
-    # TODO : online
-    # create_db_from_path(DB_FILE_PATH, SERVERSIDE_MUSIC_FOLER_PATH)
     app = QApplication([])
-    app.setStyle('WindowsVista')
+    app.setStyle('Windows')
     window = MainWindow()
     # window.showMaximized()
     window.show()
